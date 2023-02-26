@@ -5,6 +5,8 @@ pub use application::Application;
 mod config;
 pub use config::Config;
 pub mod error;
+mod page;
+pub use page::Page;
 pub mod utils;
 
 pub fn run(config: Config) -> Result<()> {
