@@ -2,18 +2,18 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::{utils, Config, Page};
+use crate::{utils, Config, page::{HTMLPage, MarkupPage}};
 
-pub struct Application {
+pub struct PageManager {
     target: String,
     version: String,
 
-    cached_pages: HashMap<String, Page>,
+    cached_pages: HashMap<String, MarkupPage>,
 }
 
-impl Application {
-    pub fn new(config: Config) -> Result<Application> {
-        Ok(Application {
+impl PageManager {
+    pub fn new(config: Config) -> Result<PageManager> {
+        Ok(PageManager {
             target: config.target,
             version: config.version,
             cached_pages: HashMap::new(),
@@ -21,12 +21,12 @@ impl Application {
     }
 
     #[allow(unused)]
-    fn get_page(&mut self, path: &str) -> Result<Page> {
-        let page: Page = match self.cached_pages.get(&path.to_string()) {
+    fn get_page(&mut self, path: &str) -> Result<MarkupPage> {
+        let page: MarkupPage = match self.cached_pages.get(&path.to_string()) {
             Some(page) => return Ok(page.clone()),
             None => match self.get_page_from_fs(path)? {
                 Some(page) => page,
-                None => self.get_page_from_docs_rs(path)?,
+                None => self.get_page_from_docs_rs(path)?.into(),
             },
         };
 
@@ -35,16 +35,16 @@ impl Application {
         Ok(page)
     }
 
-    fn get_page_from_fs(&self, #[allow(unused)] path: &str) -> Result<Option<Page>> {
+    fn get_page_from_fs(&self, #[allow(unused)] path: &str) -> Result<Option<MarkupPage>> {
         #[allow(unused)]
         let cache_dir = utils::get_cache_dir(&self.target)?;
         todo!("Convert path to filepath, join with cache_dir and read the page")
     }
 
-    fn get_page_from_docs_rs(&self, path: &str) -> Result<Page> {
+    fn get_page_from_docs_rs(&self, path: &str) -> Result<HTMLPage> {
         let response = reqwest::blocking::get(self.get_url_from_path(path))?;
         let body = response.text()?;
-        Ok(Page::HTML(body))
+        Ok(HTMLPage::new(&body))
     }
 
     fn get_url_from_path(&self, path: &str) -> String {

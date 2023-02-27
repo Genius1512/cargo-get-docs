@@ -1,12 +1,11 @@
 use anyhow::Result;
 
-mod application;
-pub use application::Application;
+mod page_manager;
+pub use page_manager::PageManager;
 mod config;
 pub use config::Config;
 pub mod error;
-mod page;
-pub use page::Page;
+pub mod page;
 pub mod utils;
 
 pub fn run(config: Config) -> Result<()> {
@@ -14,7 +13,7 @@ pub fn run(config: Config) -> Result<()> {
         return Err(error::Error::CrateDoesNotExist(config.target).into());
     }
 
-    let _application = Application::new(config);
+    let _application = PageManager::new(config);
 
     Ok(())
 }
